@@ -38,6 +38,16 @@ typedef enum file_gpg_type_ret
 	PAK_GPG_TYPE_DECRYPTION,
 }PAK_GPG_TYPE;
 
+typedef enum  file_write_mode
+{
+	PAK_WRITE_MODE_STA = 0,
+	PAK_WRITE_MODE_END,
+	PAK_WRITE_MODE_CUR,
+
+	PAK_WRITE_MODE_MAX,
+}PAK_WRITE_MODE;
+
+
 PAK_FILE_RET PAK_ProtectSignature(char* _fileName, char* _filePath);
 PAK_FILE_RET PAK_ProtectVerify(char* _fileName, char* _filePath);
 PAK_FILE_RET PAK_CompareFile(char* __fileName1,char* __fileName2);

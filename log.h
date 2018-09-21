@@ -8,6 +8,9 @@ typedef enum type_File
 {
 	TYPE_MD5 = 0,
 	TYPE_LOG,
+	TYPE_MSG,
+
+	TYPE_MAX,
 }TYPE_FILE;
 
 typedef enum log_file_ret

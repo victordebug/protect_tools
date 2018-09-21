@@ -180,7 +180,7 @@ PAK_FILE_RET PAK_Gpg_File(char* _fileName, char* _filePath, PAK_GPG_TYPE file_gp
 
 	if (file_gpg_type == PAK_GPG_TYPE_ENCRYPTION)
 	{
-		sprintf(gpg_comm_buf, "%s %s%c%s %s %s %s%c%s" ,"gpg -o",_filePath,'/',_fileName,"-er",m_user_data.gpg_user,_filePath,'/',FILE_NAME_MD5_ENCRYPTION);
+		//sprintf(gpg_comm_buf, "%s %s%c%s %s %s %s%c%s" ,"gpg -o",_filePath,'/',_fileName,"-er",m_user_data.gpg_user,_filePath,'/',FILE_NAME_MD5_ENCRYPTION);
 	}else if (file_gpg_type == PAK_GPG_TYPE_DECRYPTION)
 	{
 		sprintf(gpg_comm_buf, "%s %s%c%s %s %s%c%s","gpg -o",_filePath,'/',FILE_NAME_MD5_DECRYPTION,"-d",_filePath,'/',_fileName);
@@ -480,9 +480,53 @@ Recycle:
 }
 
 
+PAK_FILE_RET PAK_WriteToLog(char *_fileName, char *_buf, PAK_WRITE_MODE _mode)
+{
+	FILE *fp;
+
+	fp = fopen(_fileName,"w");
+	if (fp < 0)
+	{
+		return PAK_FAILE;
+	}
+
+	if (_mode == PAK_WRITE_MODE_STA)
+	{
+		fseek(fp,0,SEEK_SET);
+	}else if (_mode == PAK_WRITE_MODE_END)
+	{
+		fseek(fp,0,SEEK_END);
+	}else if (_mode == PAK_WRITE_MODE_CUR)
+	{
+		fseek(fp,0,SEEK_CUR);
+	}
+
+	fwrite(_buf,sizeof(_buf),1,fp);
+	fclose(fp);
+
+	return PAK_OK;
+}
 
 
+PAK_FILE_RET PAK_Get_Package_Version_Config(char *_config_name)
+{
+	PAK_FILE_RET ret_pak;
+	char strBuf[MAX_STR_LEN];
 
+	memset(strBuf,'\0',sizeof(strBuf));
+
+	//add #$#
+	sprintf(strBuf,"%s","#$#");
+	PAK_WriteToLog(_config_name,strBuf,PAK_WRITE_MODE_STA);
+
+	//get buf of config file
+
+	//splid buf and write in message file
+
+	//add #$#
+	sprintf(strBuf,"%s","#$#");
+	PAK_WriteToLog(_config_name,strBuf,PAK_WRITE_MODE_STA);
+}
 
 
 

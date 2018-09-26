@@ -26,10 +26,10 @@ typedef struct User_Info
 	char *tool_function;
 	char *imag_package_name;
 	char *message_imag_package_name;
-	char *gpg_user_private_key;
-	char *gpg_user_public_key;
 	char *log_path;
 	char *log_name;
+	char *gpg_user_private_key;
+	char *gpg_user_public_key;
 }USER_INFO;
 
 

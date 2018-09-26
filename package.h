@@ -5,8 +5,9 @@
 
 
 #define FILE_NAME_GPG                 "package.gpg"
-#define FILE_NAME_MD5_ENCRYPTION      "package_encrypt.md5"
-#define FILE_NAME_MD5_DECRYPTION      "package_decrypt.md5"
+#define FILE_LOCAL_VERSION_MESAGE     "local_version_file"
+#define FILE_LOCAL_GPG                "local_gpg_file"
+#define FILE_LOCAL_CRC_FILE           "local_crc_file"
 
 typedef enum package_file_ret
 {
@@ -48,10 +49,12 @@ typedef enum  file_write_mode
 }PAK_WRITE_MODE;
 
 
-PAK_FILE_RET PAK_ProtectSignature(char* _fileName, char* _filePath);
-PAK_FILE_RET PAK_ProtectVerify(char* _fileName, char* _filePath);
+PAK_FILE_RET PAK_ProtectSignature(char* _fileName);
+PAK_FILE_RET PAK_ProtectVerify(char* _fileName);
 PAK_FILE_RET PAK_CompareFile(char* __fileName1,char* __fileName2);
-
+char *PAK_GetBufOfFile(char *_file_name);
+PAK_FILE_RET PAK_Get_Package_Version_Config(char *_config_file_name);
+PAK_FILE_RET PAK_WriteToLog(char *_fileName, char *_buf, PAK_WRITE_MODE _mode);
 
 
 

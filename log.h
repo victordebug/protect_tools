@@ -3,6 +3,7 @@
 
 #define MAX_SIZE_STR 100
 
+#define FILE_NAME_MD5_ENCRYPTION   ""
 
 typedef enum type_File
 {
@@ -22,6 +23,7 @@ typedef enum log_file_ret
 int LOG_CreatLogFile(char *_logDirPath, TYPE_FILE _type_file);
 int LOG_ClosePackageLog(TYPE_FILE _type_file);
 int LOG_Info(char *_logInfoBuf, TYPE_FILE _type_file);
+int LOG_GetCurTime(char *_time);
 
 
 

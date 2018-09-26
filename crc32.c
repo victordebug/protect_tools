@@ -5,6 +5,7 @@
 
 #include "crc32.h"
 #include "main.h"
+#include "package.h"
 
 const unsigned int crc_table[] = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
@@ -89,51 +90,6 @@ unsigned long int crc32(const void *__data, int data_size)
     return result;
 }
 
-char *PAK_GetBufOfFile(char *_file_name)
-{
-	FILE *fp;
-	int flen = 0;
-	int ret = 0;
-	char *readBuf = NULL;
-
-	if (access(_file_name,F_OK) != 0)
-	{
-		printf("i can not find %s \r\n", _file_name);
-		return -1;
-	}
-
-	fp = fopen(_file_name,"r");
-	if (fp < 0)
-	{
-		printf("open %s file\n",_file_name);
-		return -1;
-	}
-
-	fseek(fp,0,SEEK_END);
-	flen = ftell(fp);
-
-	readBuf = (char *)malloc(flen + 1);
-	if (readBuf == NULL)
-	{
-		printf("malloc faile \n");
-		fclose(fp);
-		return -1;
-	}
-
-	fseek(fp,0,SEEK_SET);
-	ret = fread(readBuf,flen,1,fp);
-	if (ret < 0)
-	{
-		printf("read %s filed\n", _file_name);
-	}
-
-	fclose(fp);
-	
-	readBuf[flen] = '\0';
-
-	return readBuf;
-}
-
 unsigned long int get_file_crc32(char *_file_name)
 {
 	unsigned long int crc32_value = 0;
@@ -141,7 +97,7 @@ unsigned long int get_file_crc32(char *_file_name)
 
 	readBuf = PAK_GetBufOfFile(_file_name);
 	printf("readBuf:%s\n", readBuf);
-	crc32_value = crc32(readBuf,strlen(_file_name)+1);
+	crc32_value = crc32(readBuf,strlen(readBuf)+1);
 
 	return crc32_value;
 }

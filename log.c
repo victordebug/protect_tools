@@ -12,7 +12,6 @@
 
 FILE *LogFd, *Md5Fd, *PakMsgFd;
 
-
 int LOG_GetCurTime(char *_time)
 {
 	time_t t;
@@ -111,6 +110,7 @@ int LOG_CreatPackageLog(char *_logPathName, TYPE_FILE _type_file)
 		}
 
 		fseek(Md5Fd,0,SEEK_SET);
+		fclose(Md5Fd);
 	}else if (_type_file == TYPE_LOG)
 	{
 		LogFd = fopen(_logPathName, "a");
@@ -120,14 +120,8 @@ int LOG_CreatPackageLog(char *_logPathName, TYPE_FILE _type_file)
 			return LOG_FAILE;
 		}
 
-		ret = fwrite("\n",sizeof("\n"),1,LogFd);
-		if (ret < 0)
-		{
-			printf("write to log faile!\n");
-			return LOG_FAILE;
-		} 
-
 		fseek(LogFd,0,SEEK_SET);
+		fclose(LogFd);
 	}else if (_type_file == TYPE_MSG)
 	{
 		PakMsgFd = fopen(_logPathName, "a");
@@ -137,14 +131,8 @@ int LOG_CreatPackageLog(char *_logPathName, TYPE_FILE _type_file)
 			return LOG_FAILE;
 		}
 
-		ret = fwrite("\n",sizeof("\n"),1,PakMsgFd);
-		if (ret < 0)
-		{
-			printf("write to log faile!\n");
-			return LOG_FAILE;
-		} 
-
 		fseek(PakMsgFd,0,SEEK_SET);
+		fclose(PakMsgFd);
 	}
 
 	return LOG_OK;
@@ -175,12 +163,12 @@ int LOG_CreatLogFile(char *_logDirPath, TYPE_FILE _type_file)
 	}else if (_type_file == TYPE_MSG)
 	{
 		LOG_GetCurTime(curTime);
-		sprintf(packageName,"%s%s%s","/imagPackageMsg_",curTime,".log");
+		sprintf(packageName,"%s%s","/imagPackageMsg_",curTime);
 	}
 
 	strcat(logPathName,packageName);
 	m_user_data.log_name = logPathName;
-	printf("log file name >>> %s\n", logPathName);
+	printf("log file name >>> %s\n", m_user_data.log_name);
 
 	ret = LOG_CreatPackageLog(logPathName, _type_file);
 	if (LOG_OK != ret)

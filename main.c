@@ -19,9 +19,6 @@ int main(int argc, char *argv[])
     PAK_FILE_RET ret_pak;
 
 
-    printf("crc32:%lx\n", get_file_crc32("/home/henry/test/txt"));
-
-/*
     printf("read user input information >>>\n");
     ret = readUserInfo(argc,argv);
     if (ret != 0)
@@ -29,20 +26,27 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    printf("creat log file in >>>", );
-    ret_log = LOG_CreatLogFile(m_user_data.log_path,TYPE_MSG);
-    if (ret_log != LOG_OK)
-    {
-        printf("creat log file faile!\n");
-    }
-
-
-
 
     if (0 == strcmp(m_user_data.tool_function, "enc"))
     {
+        printf("creat log file in >>>\n");
+        ret_log = LOG_CreatLogFile(m_user_data.log_path,TYPE_MSG);
+        if (ret_log != LOG_OK)
+        {
+            printf("creat log file faile!\n");
+            return -1;
+        }
+
+        printf("write package version massage to log >>>\n");
+        ret_pak = PAK_Get_Package_Version_Config(m_user_data.message_imag_package_name);
+        if (ret_pak != PAK_OK)
+        {
+            printf("get package version filed!\n");
+            goto end;
+        }
+
         LOG_Info("Encrypt the packet >>> \n", TYPE_MAX);
-        ret_pak = PAK_ProtectSignature(m_user_data.imag_package_name,m_user_data.imag_package_path);
+        ret_pak = PAK_ProtectSignature(m_user_data.imag_package_name);
         if (ret_pak != PAK_OK)
         {
             LOG_Info("Encrypt packet failed!\n", TYPE_MAX);
@@ -51,7 +55,7 @@ int main(int argc, char *argv[])
         LOG_Info("\n***************Encrypt packet succeed***************\n",TYPE_MAX);
     }else if (0 == strcmp(m_user_data.tool_function, "dec"))
     {
-        ret_pak = PAK_ProtectVerify(m_user_data.imag_package_name,m_user_data.imag_package_path);
+        ret_pak = PAK_ProtectVerify(m_user_data.imag_package_name);
         if (ret_pak != PAK_OK)
         {
             LOG_Info("Decryption packet filed!\n",TYPE_MAX);
@@ -63,15 +67,11 @@ int main(int argc, char *argv[])
         LOG_Info("tools function error !\n", TYPE_MAX);
     }
 
-
-
-    LOG_ClosePackageLog(TYPE_MSG);
 	return 0;
 
 end:
-    LOG_ClosePackageLog(TYPE_MSG);
     return -1;
-*/
+
 }
 
 
@@ -93,7 +93,7 @@ static void userHelpInfo()
     printf("       -h          help information                            \n");
 
     printf("example:                                                       \n");
-    printf("        ./protect_tool -f enc -n test.tar.gz -g henry          \n");
+    printf("        ./protect_tool -f enc -pn test.tar.gz  ...             \n");
     printf("***************************************************************\n");
 }
 
@@ -136,7 +136,7 @@ int readUserInfo(int argc, char *argv[])
             {
                 goto end;
             }
-        }else if (strcmp(argv[i], "prg") == 0)
+        }else if (strcmp(argv[i], "-prg") == 0)
         {
             if (argv[i + 1] != NULL)
             {
@@ -172,11 +172,23 @@ int readUserInfo(int argc, char *argv[])
     }while(i<argc);
 
 
-    if ((m_user_data.tool_function == NULL) || (m_user_data.gpg_user_private_key == NULL) || (m_user_data.gpg_user_public_key == NULL) || 
-        (m_user_data.imag_package_name == NULL) || (m_user_data.message_imag_package_name == NULL))
-    { 
-        goto end;
+    if (m_user_data.tool_function == "enc")
+    {
+        if ((m_user_data.gpg_user_private_key == NULL) || (m_user_data.gpg_user_public_key == NULL) || 
+                (m_user_data.imag_package_name == NULL) || (m_user_data.message_imag_package_name == NULL))
+        { 
+            goto end;
+        }
+    }else if (m_user_data.tool_function == "dec")
+    {
+        if ((m_user_data.gpg_user_private_key == NULL) || (m_user_data.gpg_user_public_key == NULL) || 
+            (m_user_data.imag_package_name == NULL))
+        { 
+            goto end;
+        }
     }
+
+    
 
     //get imag package path
     m_str = strdup(m_user_data.imag_package_name);
@@ -200,6 +212,13 @@ int readUserInfo(int argc, char *argv[])
 end:
     printf("\n---------------------------------------------------------------\n");
     printf("userInfoBuf:%s\n", userInfoBuf);
+
+    printf("tool_function:%s\n",m_user_data.tool_function);
+    printf("imag_package_name:%s\n", m_user_data.imag_package_name);
+    printf("message_imag_package_name:%s\n", m_user_data.message_imag_package_name);
+    printf("log_path:%s\n",m_user_data.log_path);
+    printf("gpg_user_public_key:%s\n",m_user_data.gpg_user_public_key);
+    printf("gpg_user_private_key:%s\n",m_user_data.gpg_user_private_key);
     printf("---------------------------------------------------------------\n");
 
     userHelpInfo();

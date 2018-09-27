@@ -191,7 +191,8 @@ PAK_FILE_RET PAK_Gpg_File(char* _fileName, PAK_GPG_TYPE file_gpg_type)
 
 	if (file_gpg_type == PAK_GPG_TYPE_ENCRYPTION)
 	{
-		sprintf(gpg_comm_buf, "%s %s %s %s %s" ,"gpg -a -e -o",FILE_NAME_GPG,"-r",m_user_data.gpg_user_public_key,_fileName);
+		sprintf(gpg_comm_buf, "%s %s %s %s %s %s %s %s" ,"gpg -u ",m_user_data.gpg_user_send," -r ",m_user_data.gpg_user_rev,
+			" -a -s -o ",FILE_NAME_GPG," -e ",_fileName);
 	}else if (file_gpg_type == PAK_GPG_TYPE_DECRYPTION)
 	{
 		LOG_GetCurTime(curTime);

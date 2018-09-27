@@ -88,8 +88,8 @@ static void userHelpInfo()
     printf("       -f          enc:encryption  dec:decryption              \n");
     printf("       -pn         image package name                          \n");
     printf("       -mn         image package message name                  \n");
-    printf("       -prg        user gpg private keys                       \n");
-    printf("       -pug        user gpg public keys                        \n");
+    printf("       -gsu        local send  user of gpg                     \n");
+    printf("       -gru        recive  user of gpg                         \n");
     printf("       -h          help information                            \n");
 
     printf("example:                                                       \n");
@@ -136,11 +136,20 @@ int readUserInfo(int argc, char *argv[])
             {
                 goto end;
             }
-        }else if (strcmp(argv[i], "-prg") == 0)
+        }else if (strcmp(argv[i], "-gsu") == 0)
         {
             if (argv[i + 1] != NULL)
             {
-                m_user_data.gpg_user_private_key = argv[i + 1];
+                m_user_data.gpg_user_send = argv[i + 1];
+            }else
+            {
+                goto end;
+            }
+        }else if (strcmp(argv[i], "-gru") == 0)
+        {
+            if (argv[i + 1] != NULL)
+            {
+                m_user_data.gpg_user_rev = argv[i + 1];
             }else
             {
                 goto end;
@@ -150,15 +159,6 @@ int readUserInfo(int argc, char *argv[])
             if (argv[i + 1] != NULL)
             {
                 m_user_data.tool_function = argv[i + 1];
-            }else
-            {
-                goto end;
-            }
-        }else if (strcmp(argv[i], "-pug") == 0)
-        {
-            if (argv[i + 1] != NULL)
-            {
-                m_user_data.gpg_user_public_key = argv[i + 1];
             }else
             {
                 goto end;
@@ -174,15 +174,13 @@ int readUserInfo(int argc, char *argv[])
 
     if (m_user_data.tool_function == "enc")
     {
-        if ((m_user_data.gpg_user_private_key == NULL) || (m_user_data.gpg_user_public_key == NULL) || 
-                (m_user_data.imag_package_name == NULL) || (m_user_data.message_imag_package_name == NULL))
+        if ((m_user_data.gpg_user_send == NULL) || (m_user_data.gpg_user_rev == NULL) || (m_user_data.imag_package_name == NULL) || (m_user_data.message_imag_package_name == NULL))
         { 
             goto end;
         }
     }else if (m_user_data.tool_function == "dec")
     {
-        if ((m_user_data.gpg_user_private_key == NULL) || (m_user_data.gpg_user_public_key == NULL) || 
-            (m_user_data.imag_package_name == NULL))
+        if (m_user_data.imag_package_name == NULL)
         { 
             goto end;
         }
@@ -202,8 +200,8 @@ int readUserInfo(int argc, char *argv[])
     printf("imag_package_name:%s\n", m_user_data.imag_package_name);
     printf("message_imag_package_name:%s\n", m_user_data.message_imag_package_name);
     printf("log_path:%s\n",m_user_data.log_path);
-    printf("gpg_user_public_key:%s\n",m_user_data.gpg_user_public_key);
-    printf("gpg_user_private_key:%s\n",m_user_data.gpg_user_private_key);
+    printf("gpg_user_rev:%s\n",m_user_data.gpg_user_rev);
+    printf("gpg_user_send:%s\n",m_user_data.gpg_user_send);
     printf("---------------------------------------------------------------\n");
 
 
@@ -217,8 +215,8 @@ end:
     printf("imag_package_name:%s\n", m_user_data.imag_package_name);
     printf("message_imag_package_name:%s\n", m_user_data.message_imag_package_name);
     printf("log_path:%s\n",m_user_data.log_path);
-    printf("gpg_user_public_key:%s\n",m_user_data.gpg_user_public_key);
-    printf("gpg_user_private_key:%s\n",m_user_data.gpg_user_private_key);
+    printf("gpg_user_rev:%s\n",m_user_data.gpg_user_rev);
+    printf("gpg_user_send:%s\n",m_user_data.gpg_user_send);
     printf("---------------------------------------------------------------\n");
 
     userHelpInfo();

@@ -1,1 +1,1 @@
-#define SOFTWARE_VERSION    "V0.2.0"
+#define SOFTWARE_VERSION    "V0.2.1"

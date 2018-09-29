@@ -22,6 +22,329 @@ static char *local_crc32 = 0;
 
 PAK_FILE_RET PAK_Deal_File(char *_fileName);
 PAK_FILE_RET PAK_Crc32_Cmp(char *_fileName);
+PAK_FILE_RET PAK_FindFileInDir(char *_filePath, char *_fileName, char *_logBuf);
+PAK_FILE_TYPE_RET PAK_JudgeFileType(char* _fileName);
+PAK_FILE_RET PAK_Tar_File(char *tar_fileName, char *_filePath, PAK_TAR_TYPE _tar_type, PAK_FILE_TYPE_RET _file_type_ret);
+PAK_FILE_RET PAK_Gpg_File(char* _fileName, PAK_GPG_TYPE file_gpg_type);
+PAK_FILE_RET PAK_Md5_File(char* _fileName, char* _filePath);
+PAK_FILE_RET PAK_DeletOtherFile(char *_filePath, char *_fileName);
+PAK_FILE_RET PAK_CompareFile(char* _fileName1,char* _fileName2);
+PAK_FILE_RET PAK_WriteToLog(char *_fileName, char *_buf, PAK_WRITE_MODE _mode);
+char *PAK_GetBufOfFile(char *_file_name);
+PAK_FILE_RET PAK_Get_Package_Version_Config(char *_config_file_name);
+
+
+
+PAK_FILE_RET PAK_ProtectSignature(char* _fileName)
+{
+	char logBuf[MAX_STR_LEN];
+	char *bufFile = NULL;
+	int bufLen = 0;
+    long int crc_log = 0;
+    PAK_FILE_RET ret_pak;
+
+	//assert
+	assert(NULL != _fileName);
+
+	memset(logBuf,'\0',sizeof(logBuf));
+
+	//juge the file is exist
+	if (access(_fileName,F_OK) != 0)
+	{
+		printf("i can not find %s \r\n", _fileName);
+		return -1;
+	}
+
+	//gpg file to txt
+	ret_pak = PAK_Gpg_File(_fileName, PAK_GPG_TYPE_ENCRYPTION);
+	if (ret_pak != PAK_OK)
+	{
+		goto Recycle;
+	}
+
+	//get len gpg.file
+	bufFile = PAK_GetBufOfFile(FILE_NAME_GPG);
+	printf("gpg >>> %s\n", bufFile);
+
+	//write len of gpg.file
+	bufLen = strlen(bufFile);
+	printf("gpg buf len >>> %d\n", bufLen);
+	
+	sprintf(logBuf,"%d",bufLen);
+    PAK_WriteToLog(m_user_data.log_name,logBuf,PAK_WRITE_MODE_END);
+	PAK_WriteToLog(m_user_data.log_name,"#$#",PAK_WRITE_MODE_END);
+
+	
+	//write gpg.file to log 
+	PAK_WriteToLog(m_user_data.log_name,bufFile,PAK_WRITE_MODE_END);
+	PAK_WriteToLog(m_user_data.log_name,"#$#",PAK_WRITE_MODE_END);
+	
+	//write crc to gpg
+	crc_log = get_file_crc32(m_user_data.log_name);
+	printf("crc of log file >>> %lx\n", crc_log);
+
+	sprintf(logBuf,"%lx",crc_log);
+	PAK_WriteToLog(m_user_data.log_name,logBuf,PAK_WRITE_MODE_END);
+
+
+	//delete other file
+	if (access(_fileName,F_OK) == 0)     remove(_fileName);
+	if (access(FILE_NAME_GPG,F_OK) == 0) remove(FILE_NAME_GPG);
+	//return 
+	return PAK_OK;
+
+Recycle:
+	if (access(FILE_NAME_GPG,F_OK) == 0) remove(FILE_NAME_GPG);
+
+	return PAK_FAILE;
+}
+
+
+
+PAK_FILE_RET PAK_ProtectVerify(char* _fileName)
+{
+	char logBuf[MAX_STR_LEN];
+    PAK_FILE_RET ret_pak;
+
+
+	assert(NULL != _fileName);
+	memset(logBuf,'\0',sizeof(logBuf));
+
+	//juge the file is exist
+	if (access(_fileName,F_OK) != 0)
+	{
+		printf("i can not find %s \r\n", _fileName);
+		return PAK_FAILE;
+	}
+
+	//deal with the message
+	ret_pak = PAK_Deal_File(_fileName);
+	if (ret_pak != PAK_OK)
+	{
+		goto Recycle;
+	}
+	//crc32 deal with file
+	ret_pak = PAK_Crc32_Cmp(_fileName);
+	if (ret_pak != PAK_OK)
+	{
+		goto Recycle;
+	}
+
+	//gpg verify 
+	ret_pak = PAK_Gpg_File(_fileName, PAK_GPG_TYPE_DECRYPTION);
+	if (ret_pak != PAK_OK)
+	{
+		goto Recycle;
+	}
+
+	//delet other file
+	if (access(FILE_LOCAL_VERSION_MESAGE,F_OK) == 0)     remove(FILE_LOCAL_VERSION_MESAGE);
+	if (access(FILE_LOCAL_GPG,F_OK) == 0)                remove(FILE_LOCAL_GPG);
+	if (access(FILE_LOCAL_CRC_FILE,F_OK) == 0)           remove(FILE_LOCAL_CRC_FILE);
+	if (access(_fileName,F_OK) == 0)                     remove(_fileName);
+
+	return PAK_OK;
+
+Recycle:
+	if (access(FILE_LOCAL_VERSION_MESAGE,F_OK) == 0)     remove(FILE_LOCAL_VERSION_MESAGE);
+	if (access(FILE_LOCAL_GPG,F_OK) == 0)                remove(FILE_LOCAL_GPG);
+	if (access(FILE_LOCAL_CRC_FILE,F_OK) == 0)           remove(FILE_LOCAL_CRC_FILE);
+
+	return PAK_FAILE;
+}
+
+
+PAK_FILE_RET PAK_WriteToLog(char *_fileName, char *_buf, PAK_WRITE_MODE _mode)
+{
+	FILE *fp;
+
+	fp = fopen(_fileName,"a+");
+	if (fp  == NULL)
+	{
+		printf("fopen %s filed!\n", _fileName);
+		return PAK_FAILE;
+	}
+
+	if (_mode == PAK_WRITE_MODE_STA)
+	{
+		fseek(fp,0,SEEK_SET);
+	}else if (_mode == PAK_WRITE_MODE_END)
+	{
+		fseek(fp,0,SEEK_END);
+	}else if (_mode == PAK_WRITE_MODE_CUR)
+	{
+		fseek(fp,0,SEEK_CUR);
+	}
+	fseek(fp,0,SEEK_END);
+	fwrite(_buf,strlen(_buf),1,fp);
+	fclose(fp);
+
+	return PAK_OK;
+}
+
+char *PAK_GetBufOfFile(char *_file_name)
+{
+	FILE *fp;
+	int flen = 0;
+	int ret = 0;
+	char *readBuf = NULL;
+
+	if (access(_file_name,F_OK) != 0)
+	{
+		printf("i can not find %s \r\n", _file_name);
+		return NULL;
+	}
+
+	fp = fopen(_file_name,"r");
+	if (fp < 0)
+	{
+		printf("open %s file\n",_file_name);
+		return NULL;
+	}
+
+	fseek(fp,0,SEEK_END);
+	flen = ftell(fp);
+
+	readBuf = (char *)malloc(flen + 1);
+	if (readBuf == NULL)
+	{
+		printf("malloc faile \n");
+		fclose(fp);
+		return NULL;
+	}
+
+	fseek(fp,0,SEEK_SET);
+	ret = fread(readBuf,flen,1,fp);
+	if (ret < 0)
+	{
+		printf("read %s filed\n", _file_name);
+	}
+
+	fclose(fp);
+	
+	readBuf[flen] = '\0';
+
+	return readBuf;
+}
+
+PAK_FILE_RET PAK_Get_Package_Version_Config(char *_config_file_name)
+{
+	char *fileBuf = NULL;
+	char *ptr = NULL;
+
+	//add #$#
+	PAK_WriteToLog(m_user_data.log_name,"#$#",PAK_WRITE_MODE_STA);
+
+	//get buf of config file
+	fileBuf = PAK_GetBufOfFile(_config_file_name);
+	printf("file_buf:%s\r\n",fileBuf);
+
+	//splid buf and write in message file
+	ptr = strtok(fileBuf,"\n");
+	while(ptr != NULL)
+	{
+		printf("ptr = %s\n", ptr);
+		PAK_WriteToLog(m_user_data.log_name,ptr,PAK_WRITE_MODE_END);
+		PAK_WriteToLog(m_user_data.log_name,";",PAK_WRITE_MODE_END);
+		ptr = strtok(NULL,"\n");
+	}
+
+	//add #$#
+	PAK_WriteToLog(m_user_data.log_name,"#$#",PAK_WRITE_MODE_END);
+
+	return PAK_OK;
+}
+
+
+
+PAK_FILE_RET PAK_Deal_File(char *_fileName)
+{
+	char *fileBuf = NULL;
+    char *ptr = NULL;
+    int index = 0;
+
+    //get buf of config file
+    fileBuf = PAK_GetBufOfFile(_fileName);
+    printf("file_buf:%s\r\n",fileBuf);
+
+    //splid buf and write in message file
+    ptr = strtok(fileBuf,"#$#");
+    while(ptr != NULL)
+    {
+    	index ++;
+        if (index == 1)//version message
+        {
+            printf("version message >>> %s\n",ptr);
+            PAK_WriteToLog(FILE_LOCAL_VERSION_MESAGE,ptr,PAK_WRITE_MODE_STA);
+        }else if (index == 2)//len of gpg
+        {
+            len_gpg = atoi(ptr);
+            printf("len of gpg >>> %d\n",len_gpg);
+        }else if (index == 3)//gpg
+        {
+            PAK_WriteToLog(FILE_LOCAL_GPG,ptr,PAK_WRITE_MODE_STA);
+            printf("gpg >>> %s\n",ptr);
+        }else if (index == 4)//crc
+        {
+            local_crc32 = ptr;
+            printf("crc >>> %s\n",local_crc32);
+        }
+
+        ptr = strtok(NULL,"#$#");
+    }
+
+    return PAK_OK;
+}
+
+
+PAK_FILE_RET PAK_Crc32_Cmp(char *_fileName)
+{
+   FILE *fp,*ffp;
+   int i = 0;
+   int flen = 0;
+   char c[2];
+   char crc[9];
+
+   memset(crc,'\0',sizeof(crc));
+
+   /* 打开用于读取的文件 */
+   fp = fopen(_fileName , "r");
+   if(fp == NULL)
+   {
+      perror("打开文件时发生错误");
+      return PAK_FAILE;
+   }
+
+
+   fseek(fp,0,SEEK_END);
+   flen = ftell(fp);
+   printf("flen>>>%d\r\n",flen);
+
+   ffp = fopen(FILE_LOCAL_CRC_FILE,"w+");
+   fseek(fp,0,SEEK_SET);
+   while((fgets(c,sizeof(c),fp) != NULL) && (i < flen-8))
+   {
+        i++;
+        fputs(c,ffp);
+
+        printf("%s",c);
+   }
+   fclose(ffp);
+   fclose(fp);
+   
+   sprintf(crc,"%lx",get_file_crc32(FILE_LOCAL_CRC_FILE));
+   printf("crc >>> %s\n", crc);
+
+   if (strcmp(crc,local_crc32) == 0)
+   {
+   		printf("crc value verify succeed!\n");
+   		return PAK_OK;
+   }
+
+   printf("crc value verify filed!\n");
+   return PAK_FAILE;
+}
+
 
 PAK_FILE_RET PAK_FindFileInDir(char *_filePath, char *_fileName, char *_logBuf)
 {
@@ -339,331 +662,3 @@ PAK_FILE_RET PAK_CompareFile(char* _fileName1,char* _fileName2)
 
     return PAK_OK;
 }
-
-
-PAK_FILE_RET PAK_ProtectSignature(char* _fileName)
-{
-	char logBuf[MAX_STR_LEN];
-	char *bufFile = NULL;
-	int bufLen = 0;
-    long int crc_log = 0;
-    PAK_FILE_RET ret_pak;
-
-	//assert
-	assert(NULL != _fileName);
-
-	memset(logBuf,'\0',sizeof(logBuf));
-
-	//juge the file is exist
-	if (access(_fileName,F_OK) != 0)
-	{
-		printf("i can not find %s \r\n", _fileName);
-		return -1;
-	}
-
-	//gpg file to txt
-	ret_pak = PAK_Gpg_File(_fileName, PAK_GPG_TYPE_ENCRYPTION);
-	if (ret_pak != PAK_OK)
-	{
-		goto Recycle;
-	}
-
-	//get len gpg.file
-	bufFile = PAK_GetBufOfFile(FILE_NAME_GPG);
-	printf("gpg >>> %s\n", bufFile);
-
-	//write len of gpg.file
-	bufLen = strlen(bufFile);
-	printf("gpg buf len >>> %d\n", bufLen);
-	
-	sprintf(logBuf,"%d",bufLen);
-    PAK_WriteToLog(m_user_data.log_name,logBuf,PAK_WRITE_MODE_END);
-	PAK_WriteToLog(m_user_data.log_name,"#$#",PAK_WRITE_MODE_END);
-
-	
-	//write gpg.file to log 
-	PAK_WriteToLog(m_user_data.log_name,bufFile,PAK_WRITE_MODE_END);
-	PAK_WriteToLog(m_user_data.log_name,"#$#",PAK_WRITE_MODE_END);
-	
-	//write crc to gpg
-	crc_log = get_file_crc32(m_user_data.log_name);
-	printf("crc of log file >>> %lx\n", crc_log);
-
-	sprintf(logBuf,"%lx",crc_log);
-	PAK_WriteToLog(m_user_data.log_name,logBuf,PAK_WRITE_MODE_END);
-
-
-	//delete other file
-	if (access(_fileName,F_OK) == 0)     remove(_fileName);
-	if (access(FILE_NAME_GPG,F_OK) == 0) remove(FILE_NAME_GPG);
-	//return 
-	return PAK_OK;
-
-Recycle:
-	if (access(_fileName,F_OK) == 0)     remove(_fileName);
-	if (access(FILE_NAME_GPG,F_OK) == 0) remove(FILE_NAME_GPG);
-
-	return PAK_FAILE;
-}
-
-
-
-PAK_FILE_RET PAK_ProtectVerify(char* _fileName)
-{
-	char logBuf[MAX_STR_LEN];
-    PAK_FILE_RET ret_pak;
-
-
-	assert(NULL != _fileName);
-	memset(logBuf,'\0',sizeof(logBuf));
-
-	//juge the file is exist
-	if (access(_fileName,F_OK) != 0)
-	{
-		printf("i can not find %s \r\n", _fileName);
-		return PAK_FAILE;
-	}
-
-	//deal with the message
-	ret_pak = PAK_Deal_File(_fileName);
-	if (ret_pak != PAK_OK)
-	{
-		goto Recycle;
-	}
-	//crc32 deal with file
-	ret_pak = PAK_Crc32_Cmp(_fileName);
-	if (ret_pak != PAK_OK)
-	{
-		goto Recycle;
-	}
-
-	//gpg verify 
-	ret_pak = PAK_Gpg_File(_fileName, PAK_GPG_TYPE_DECRYPTION);
-	if (ret_pak != PAK_OK)
-	{
-		goto Recycle;
-	}
-
-	//delet other file
-	if (access(FILE_LOCAL_VERSION_MESAGE,F_OK) == 0)     remove(FILE_LOCAL_VERSION_MESAGE);
-	if (access(FILE_LOCAL_GPG,F_OK) == 0)                remove(FILE_LOCAL_GPG);
-	if (access(FILE_LOCAL_CRC_FILE,F_OK) == 0)           remove(FILE_LOCAL_CRC_FILE);
-	if (access(_fileName,F_OK) == 0)                     remove(_fileName);
-
-	return PAK_OK;
-
-Recycle:
-	if (access(FILE_LOCAL_VERSION_MESAGE,F_OK) == 0)     remove(FILE_LOCAL_VERSION_MESAGE);
-	if (access(FILE_LOCAL_GPG,F_OK) == 0)                remove(FILE_LOCAL_GPG);
-	if (access(FILE_LOCAL_CRC_FILE,F_OK) == 0)           remove(FILE_LOCAL_CRC_FILE);
-	if (access(_fileName,F_OK) == 0)                     remove(_fileName);
-
-	return PAK_FAILE;
-}
-
-
-PAK_FILE_RET PAK_WriteToLog(char *_fileName, char *_buf, PAK_WRITE_MODE _mode)
-{
-	FILE *fp;
-
-	fp = fopen(_fileName,"a+");
-	if (fp  == NULL)
-	{
-		printf("fopen %s filed!\n", _fileName);
-		return PAK_FAILE;
-	}
-
-	if (_mode == PAK_WRITE_MODE_STA)
-	{
-		fseek(fp,0,SEEK_SET);
-	}else if (_mode == PAK_WRITE_MODE_END)
-	{
-		fseek(fp,0,SEEK_END);
-	}else if (_mode == PAK_WRITE_MODE_CUR)
-	{
-		fseek(fp,0,SEEK_CUR);
-	}
-	fseek(fp,0,SEEK_END);
-	fwrite(_buf,strlen(_buf),1,fp);
-	fclose(fp);
-
-	return PAK_OK;
-}
-
-char *PAK_GetBufOfFile(char *_file_name)
-{
-	FILE *fp;
-	int flen = 0;
-	int ret = 0;
-	char *readBuf = NULL;
-
-	if (access(_file_name,F_OK) != 0)
-	{
-		printf("i can not find %s \r\n", _file_name);
-		return NULL;
-	}
-
-	fp = fopen(_file_name,"r");
-	if (fp < 0)
-	{
-		printf("open %s file\n",_file_name);
-		return NULL;
-	}
-
-	fseek(fp,0,SEEK_END);
-	flen = ftell(fp);
-
-	readBuf = (char *)malloc(flen + 1);
-	if (readBuf == NULL)
-	{
-		printf("malloc faile \n");
-		fclose(fp);
-		return NULL;
-	}
-
-	fseek(fp,0,SEEK_SET);
-	ret = fread(readBuf,flen,1,fp);
-	if (ret < 0)
-	{
-		printf("read %s filed\n", _file_name);
-	}
-
-	fclose(fp);
-	
-	readBuf[flen] = '\0';
-
-	return readBuf;
-}
-
-PAK_FILE_RET PAK_Get_Package_Version_Config(char *_config_file_name)
-{
-	PAK_FILE_RET ret_pak;
-	char *fileBuf = NULL;
-	char *ptr = NULL;
-
-	//add #$#
-	PAK_WriteToLog(m_user_data.log_name,"#$#",PAK_WRITE_MODE_STA);
-
-	//get buf of config file
-	fileBuf = PAK_GetBufOfFile(_config_file_name);
-	printf("file_buf:%s\r\n",fileBuf);
-
-	//splid buf and write in message file
-	ptr = strtok(fileBuf,"\n");
-	while(ptr != NULL)
-	{
-		printf("ptr = %s\n", ptr);
-		ret_pak = PAK_WriteToLog(m_user_data.log_name,ptr,PAK_WRITE_MODE_END);
-		if (ret_pak != PAK_OK)
-		{
-			printf("write to log filed!\n");
-		}
-
-		ret_pak = PAK_WriteToLog(m_user_data.log_name,";",PAK_WRITE_MODE_END);
-		if (ret_pak != PAK_OK)
-		{
-			printf("write ';' to log filed!\n");
-		}
-
-		ptr = strtok(NULL,"\n");
-	}
-
-	//add #$#
-	PAK_WriteToLog(m_user_data.log_name,"#$#",PAK_WRITE_MODE_END);
-
-	return PAK_OK;
-}
-
-
-
-PAK_FILE_RET PAK_Deal_File(char *_fileName)
-{
-	char *fileBuf = NULL;
-    char *ptr = NULL;
-    int index = 0;
-
-    //get buf of config file
-    fileBuf = PAK_GetBufOfFile(_fileName);
-    printf("file_buf:%s\r\n",fileBuf);
-
-    //splid buf and write in message file
-    ptr = strtok(fileBuf,"#$#");
-    while(ptr != NULL)
-    {
-    	index ++;
-        if (index == 1)//version message
-        {
-            printf("version message >>> %s\n",ptr);
-            PAK_WriteToLog(FILE_LOCAL_VERSION_MESAGE,ptr,PAK_WRITE_MODE_STA);
-        }else if (index == 2)//len of gpg
-        {
-            len_gpg = atoi(ptr);
-            printf("len of gpg >>> %d\n",len_gpg);
-        }else if (index == 3)//gpg
-        {
-            PAK_WriteToLog(FILE_LOCAL_GPG,ptr,PAK_WRITE_MODE_STA);
-            printf("gpg >>> %s\n",ptr);
-        }else if (index == 4)//crc
-        {
-            local_crc32 = ptr;
-            printf("crc >>> %s\n",local_crc32);
-        }
-
-        ptr = strtok(NULL,"#$#");
-    }
-
-    return PAK_OK;
-}
-
-
-PAK_FILE_RET PAK_Crc32_Cmp(char *_fileName)
-{
-   FILE *fp,*ffp;
-   int i = 0;
-   int flen = 0;
-   char c[2];
-   char crc[9];
-
-   memset(crc,'\0',sizeof(crc));
-
-   /* 打开用于读取的文件 */
-   fp = fopen(_fileName , "r");
-   if(fp == NULL)
-   {
-      perror("打开文件时发生错误");
-      return PAK_FAILE;
-   }
-
-
-   fseek(fp,0,SEEK_END);
-   flen = ftell(fp);
-   printf("flen>>>%d\r\n",flen);
-
-   ffp = fopen(FILE_LOCAL_CRC_FILE,"w+");
-   fseek(fp,0,SEEK_SET);
-   while((fgets(c,sizeof(c),fp) != NULL) && (i < flen-8))
-   {
-        i++;
-        fputs(c,ffp);
-
-        printf("%s",c);
-   }
-   fclose(ffp);
-   fclose(fp);
-   
-   sprintf(crc,"%lx",get_file_crc32(FILE_LOCAL_CRC_FILE));
-   printf("crc >>> %s\n", crc);
-
-   if (strcmp(crc,local_crc32) == 0)
-   {
-   		printf("crc value verify succeed!\n");
-   		return PAK_OK;
-   }
-
-   printf("crc value verify filed!\n");
-   return PAK_FAILE;
-}
-
-
-
-

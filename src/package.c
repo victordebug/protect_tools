@@ -411,8 +411,6 @@ Recycle:
 PAK_FILE_RET PAK_ProtectVerify(char* _fileName)
 {
 	char logBuf[MAX_STR_LEN];
-    int ret;
-	LOG_FILE_RET ret_log;
     PAK_FILE_RET ret_pak;
 
 
@@ -572,6 +570,8 @@ PAK_FILE_RET PAK_Get_Package_Version_Config(char *_config_file_name)
 
 	//add #$#
 	PAK_WriteToLog(m_user_data.log_name,"#$#",PAK_WRITE_MODE_END);
+
+	return PAK_OK;
 }
 
 

@@ -172,13 +172,13 @@ int readUserInfo(int argc, char *argv[])
     }while(i<argc);
 
 
-    if (m_user_data.tool_function == "enc")
+    if (strcmp(m_user_data.tool_function , "enc") == 0)
     {
         if ((m_user_data.gpg_user_send == NULL) || (m_user_data.gpg_user_rev == NULL) || (m_user_data.imag_package_name == NULL) || (m_user_data.message_imag_package_name == NULL))
         { 
             goto end;
         }
-    }else if (m_user_data.tool_function == "dec")
+    }else if (strcmp(m_user_data.tool_function , "dec") == 0)
     {
         if (m_user_data.imag_package_name == NULL)
         { 

@@ -98,7 +98,6 @@ int LOG_CreatPackageLog(char *_logPathName, TYPE_FILE _type_file)
 {
 	assert(_logPathName != NULL);
 	
-	size_t ret;
 
 	if (_type_file == TYPE_MD5)
 	{

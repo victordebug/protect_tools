@@ -1,5 +1,5 @@
-#ifndef MD5_H
-#define MD5_H
+#ifndef _MD5_H_
+#define _MD5_H_
 
 typedef struct
 {
@@ -8,6 +8,9 @@ typedef struct
 	unsigned char buffer[64];   
 } MD5_CTX;
 
+#define READ_DATA_SIZE	1024
+#define MD5_SIZE		16
+#define MD5_STR_LEN		(MD5_SIZE * 2)
 
 #define F(x,y,z) ((x & y) | (~x & z))
 #define G(x,y,z) ((x & z) | (y & ~z))

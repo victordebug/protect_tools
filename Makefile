@@ -1,23 +1,28 @@
-objects = main.o md5.o log.o package.o crc32.o
+DIR_INC = ./include
+DIR_SRC = ./src
+DIR_OBJ = ./obj
+DIR_BIN = ./bin
 
-protect_tool: $(objects)
-	cc -o protect_tool $(objects)
+#VPATH = ./src:./include:./obj:./bin
 
+CC = gcc
+CFLAGS =-Wall
+INCLUDES = -I${DIR_INC}
+TARGET = protect_tool
 
-main.o: main.c md5.h main.h log.h package.h crc32.o
-	cc -c main.c
-md5.o: md5.c md5.h main.h
-	cc -c md5.c
-log.o: log.c log.h main.h
-	cc -c log.c
-package.o: package.c package.h log.h md5.h
-	cc -c package.c
-crc32.o: crc32.c crc32.h
-	cc -c crc32.c
+SRC = $(wildcard ${DIR_SRC}/*.c)
+OBJ = $(patsubst %.c, ${DIR_OBJ}/%.o, $(notdir $(SRC)))
+BIN_TARGET = ${DIR_BIN}/${TARGET}
 
+#make target
+${BIN_TARGET}:${OBJ}
+	${CC} ${OBJ} -o $@
 
-
-
+#make clean
 .PHONY : clean
 clean:
-	rm -rf protect_tool $(objects)
+	rm -rf  ${DIR_OBJ}/*.o ${BIN_TARGET}
+
+#dependence
+${DIR_OBJ}/%.o: ${DIR_SRC}/%.c
+	${CC} ${CFLAGS} ${INCLUDES} -c $< -o $@

@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <libgen.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "main.h"
 #include "md5.h"
 #include "log.h"
 #include "package.h"
 #include "crc32.h"
+
 
 USER_INFO m_user_data = {NULL};
 
@@ -70,6 +73,7 @@ int main(int argc, char *argv[])
 	return 0;
 
 end:
+    if (access(m_user_data.log_name,F_OK) == 0)     remove(m_user_data.log_name);
     return -1;
 
 }

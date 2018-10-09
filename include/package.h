@@ -51,10 +51,18 @@ typedef enum  file_write_mode
 
 PAK_FILE_RET PAK_ProtectSignature(char* _fileName);
 PAK_FILE_RET PAK_ProtectVerify(char* _fileName);
-PAK_FILE_RET PAK_CompareFile(char* __fileName1,char* __fileName2);
+PAK_FILE_RET PAK_Deal_File(char *_fileName);
+PAK_FILE_RET PAK_Crc32_Cmp(char *_fileName);
+PAK_FILE_RET PAK_FindFileInDir(char *_filePath, char *_fileName, char *_logBuf);
+PAK_FILE_TYPE_RET PAK_JudgeFileType(char* _fileName);
+PAK_FILE_RET PAK_Tar_File(char *tar_fileName, char *_filePath, PAK_TAR_TYPE _tar_type, PAK_FILE_TYPE_RET _file_type_ret);
+PAK_FILE_RET PAK_Gpg_File(char* _fileName, PAK_GPG_TYPE file_gpg_type);
+PAK_FILE_RET PAK_Md5_File(char* _fileName, char* _filePath);
+PAK_FILE_RET PAK_DeletOtherFile(char *_filePath, char *_fileName);
+PAK_FILE_RET PAK_CompareFile(char* _fileName1,char* _fileName2);
+PAK_FILE_RET PAK_WriteToLog(char *_fileName, char *_buf, PAK_WRITE_MODE _mode);
 char *PAK_GetBufOfFile(char *_file_name);
 PAK_FILE_RET PAK_Get_Package_Version_Config(char *_config_file_name);
-PAK_FILE_RET PAK_WriteToLog(char *_fileName, char *_buf, PAK_WRITE_MODE _mode);
 
 
 

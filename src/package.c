@@ -20,21 +20,6 @@
 unsigned int len_gpg = 0;
 static char *local_crc32 = 0;
 
-PAK_FILE_RET PAK_Deal_File(char *_fileName);
-PAK_FILE_RET PAK_Crc32_Cmp(char *_fileName);
-PAK_FILE_RET PAK_FindFileInDir(char *_filePath, char *_fileName, char *_logBuf);
-PAK_FILE_TYPE_RET PAK_JudgeFileType(char* _fileName);
-PAK_FILE_RET PAK_Tar_File(char *tar_fileName, char *_filePath, PAK_TAR_TYPE _tar_type, PAK_FILE_TYPE_RET _file_type_ret);
-PAK_FILE_RET PAK_Gpg_File(char* _fileName, PAK_GPG_TYPE file_gpg_type);
-PAK_FILE_RET PAK_Md5_File(char* _fileName, char* _filePath);
-PAK_FILE_RET PAK_DeletOtherFile(char *_filePath, char *_fileName);
-PAK_FILE_RET PAK_CompareFile(char* _fileName1,char* _fileName2);
-PAK_FILE_RET PAK_WriteToLog(char *_fileName, char *_buf, PAK_WRITE_MODE _mode);
-char *PAK_GetBufOfFile(char *_file_name);
-PAK_FILE_RET PAK_Get_Package_Version_Config(char *_config_file_name);
-
-
-
 PAK_FILE_RET PAK_ProtectSignature(char* _fileName)
 {
 	char logBuf[MAX_STR_LEN];
@@ -524,8 +509,10 @@ PAK_FILE_RET PAK_Gpg_File(char* _fileName, PAK_GPG_TYPE file_gpg_type)
 
 	if (file_gpg_type == PAK_GPG_TYPE_ENCRYPTION)
 	{
-		sprintf(gpg_comm_buf, "%s %s %s %s %s %s %s %s" ,"gpg -u ",m_user_data.gpg_user_send," -r ",m_user_data.gpg_user_rev,
-			" -a -s -o ",FILE_NAME_GPG," -e ",_fileName);
+		/*sprintf(gpg_comm_buf, "%s %s %s %s %s %s %s %s" ,"gpg -u ",m_user_data.gpg_user_send," -r ",m_user_data.gpg_user_rev,
+			" -a -s -o ",FILE_NAME_GPG," -e ",_fileName);*/
+
+		sprintf(gpg_comm_buf, "%s %s %s %s %s %s" ,"gpg -a -r ",m_user_data.gpg_keys," -o ",FILE_NAME_GPG," -e ",_fileName);
 	}else if (file_gpg_type == PAK_GPG_TYPE_DECRYPTION)
 	{
 		LOG_GetCurTime(curTime);

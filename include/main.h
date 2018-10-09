@@ -6,7 +6,7 @@
 
 #define MAX_STR_LEN     1024
 
-#define LOG_PATH             "/tmp"
+#define LOG_PATH        "/tmp"
 
 /*file*/
 #define FILE_CREAT_SUCCESS  1
@@ -30,21 +30,6 @@ typedef struct User_Info
 
 
 extern USER_INFO m_user_data;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #endif

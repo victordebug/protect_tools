@@ -1,0 +1,1 @@
+./protect_tool -f enc -pn /home/henry/file/programpacket.tar.gz -mn /home/henry/test/version_message -gsu henry -gru wangqp

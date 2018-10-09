@@ -96,7 +96,7 @@ unsigned long int get_file_crc32(char *_file_name)
 	char *readBuf = NULL;
 
 	readBuf = PAK_GetBufOfFile(_file_name);
-	printf("readBuf:%s\n", readBuf);
+	//printf("readBuf:%s\n", readBuf);
 	crc32_value = crc32(readBuf,strlen(readBuf)+1);
 
 	return crc32_value;

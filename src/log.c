@@ -20,7 +20,7 @@ int LOG_GetCurTime(char *_time)
 	time(&t);
 	tmp_time = localtime(&t);
 	strftime(_time, MAX_SIZE_STR, "%04Y%02m%02d%H%M%S", tmp_time);
-	printf("current time >>> %s\n",_time);
+	//printf("current time >>> %s\n",_time);
 
 	return LOG_OK;
 }
@@ -162,7 +162,7 @@ int LOG_CreatLogFile(char *_logDirPath, TYPE_FILE _type_file)
 	}else if (_type_file == TYPE_MSG)
 	{
 		LOG_GetCurTime(curTime);
-		sprintf(packageName,"%s%s","/imagPackageMsg_",curTime);
+		sprintf(packageName,"%s%s","/ImgPackageMsg_",curTime);
 	}
 
 	strcat(logPathName,packageName);

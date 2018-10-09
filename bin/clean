@@ -1,0 +1,8 @@
+cd /home/henry/file
+
+rm -rf *
+
+cd ..
+
+cp test.tar.gz file/
+

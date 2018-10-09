@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
     if (0 == strcmp(m_user_data.tool_function, "enc"))
     {
-        printf("creat log file in >>>\n");
+        printf("creat log file >>>\n");
         ret_log = LOG_CreatLogFile(m_user_data.log_path,TYPE_MSG);
         if (ret_log != LOG_OK)
         {

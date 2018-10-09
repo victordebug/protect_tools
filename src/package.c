@@ -104,6 +104,7 @@ Recycle:
 PAK_FILE_RET PAK_ProtectVerify(char* _fileName)
 {
 	char logBuf[MAX_STR_LEN];
+	char *bufFile = NULL;
     PAK_FILE_RET ret_pak;
 
 
@@ -113,7 +114,7 @@ PAK_FILE_RET PAK_ProtectVerify(char* _fileName)
 	//juge the file is exist
 	if (access(_fileName,F_OK) != 0)
 	{
-		printf("i can not find %s \r\n", _fileName);
+		printf("error: I can not find %s \r\n", _fileName);
 		return PAK_FAILE;
 	}
 
@@ -123,6 +124,15 @@ PAK_FILE_RET PAK_ProtectVerify(char* _fileName)
 	{
 		goto Recycle;
 	}
+
+	//compare len of gpg
+	bufFile = PAK_GetBufOfFile(FILE_LOCAL_GPG);
+	if (len_gpg != strlen(bufFile))
+	{
+		printf("error: gpg len compare is defferent! \n");
+		goto Recycle;
+	}
+
 	//crc32 deal with file
 	ret_pak = PAK_Crc32_Cmp(_fileName);
 	if (ret_pak != PAK_OK)
@@ -265,7 +275,7 @@ PAK_FILE_RET PAK_Deal_File(char *_fileName)
 
     //get buf of config file
     fileBuf = PAK_GetBufOfFile(_fileName);
-    printf("file_buf:%s\r\n",fileBuf);
+    //printf("file_buf:%s\r\n",fileBuf);
 
     //splid buf and write in message file
     ptr = strtok(fileBuf,"#$#");
@@ -327,7 +337,7 @@ PAK_FILE_RET PAK_Crc32_Cmp(char *_fileName)
         i++;
         fputs(c,ffp);
 
-        printf("%s",c);
+        //printf("%s",c);
    }
    fclose(ffp);
    fclose(fp);
@@ -519,7 +529,7 @@ PAK_FILE_RET PAK_Gpg_File(char* _fileName, PAK_GPG_TYPE file_gpg_type)
 	}else if (file_gpg_type == PAK_GPG_TYPE_DECRYPTION)
 	{
 		LOG_GetCurTime(curTime);
-		sprintf(packageName,"%s%s%s%s",m_user_data.log_path,"/imagPackageMsg_",curTime,".tar.gz");
+		sprintf(packageName,"%s%s%s%s",m_user_data.log_path,"/ImgPackageMsg_",curTime,".tar.gz");
 		sprintf(gpg_comm_buf, "%s %s %s %s","gpg -o",packageName,"-d",FILE_LOCAL_GPG);
 	}
 
